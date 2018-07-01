@@ -1,7 +1,7 @@
+# https://cloud.google.com/endpoints/docs/frameworks/python/get-started-frameworks-python
 import json
 
 import webapp2
-
 from google.appengine.ext import ndb
 
 
@@ -32,7 +32,7 @@ class StepRecord(ndb.Model):
     h23 = ndb.IntegerProperty(default=0, indexed=False)
 
     def sum(self):
-        return sum([getattr(self, 'h' + str(index)) or 0 for index in range(24)])
+        return sum([getattr(self, name) for name in self._properties])
 
 
 class UpdateRecord(ndb.Model):
