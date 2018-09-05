@@ -1,0 +1,19 @@
+
+package com.neu.wearableloadtester;
+
+
+
+/**
+ * Interface to allow performance tests to provide specialized output formats for results.
+ * A default CSV format writer is provided
+ * @author igortn
+ */
+public interface ResultsWriter {
+    
+    public void initialize(String outFileName);
+    
+    public void writeResultsBlock(ThreadRequestLatencies results);
+    
+    public void terminate();
+    
+}
