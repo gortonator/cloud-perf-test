@@ -7,6 +7,10 @@ import (
 	"google.golang.org/appengine"
 )
 
+func main() {
+	init()
+}
+
 type ResponseObject map[string]interface{}
 
 func postStep(c *gin.Context) {
@@ -63,7 +67,5 @@ func init() {
 	http.Handle("/", router)
 }
 
-func main() {
-	init()
-}
+
 
