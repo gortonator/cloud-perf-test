@@ -62,3 +62,8 @@ func init() {
 
 	http.Handle("/", router)
 }
+
+func main() {
+	init()
+	
+}
