@@ -1,4 +1,4 @@
-package go_server
+package main
 
 import (
 	"github.com/gin-gonic/gin"
@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"google.golang.org/appengine"
 )
+
+
 
 type ResponseObject map[string]interface{}
 
@@ -48,7 +50,7 @@ func getRangeDaysSteps(c *gin.Context) {
 	c.JSON(http.StatusOK, strconv.Itoa(totalCount))
 }
 
-func init() {
+func main() {
 
 	router := gin.Default()
 	router.GET("/single/:Uid/:Day", getDaySteps)
@@ -62,3 +64,6 @@ func init() {
 
 	http.Handle("/", router)
 }
+
+
+

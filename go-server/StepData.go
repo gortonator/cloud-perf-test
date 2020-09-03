@@ -1,4 +1,4 @@
-package go_server
+package main
 
 const (
 	index       = `StepData` // the table name
