@@ -78,28 +78,12 @@ import (
      	"strconv" 
 	"github.com/gin-gonic/gin"
       "google.golang.org/appengine"
-      "fmt"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/api/iterator"
-	"golang.org/x/net/context"
-
+     
 )
 
 type ResponseObject map[string]interface{}
 
-const (
-	index       = `StepData` // the table name
-	invalidData = `error: invalid data`
-	splitter    = `#`
-)
 
-//key is uid#day#hour
-type StepData struct {
-	Uid   string `json:"Uid"`
-	Day   int    `json:"Day"`
-	Hour  int    `json:"Hour"`
-	Count int    `json:"Count"`
-}
 
 
 func postStep(c *gin.Context) {
@@ -113,79 +97,32 @@ func postStep(c *gin.Context) {
 	Create(ctx, &step)
 	c.JSON(http.StatusOK, step)
 }
+func getDaySteps(c *gin.Context) {
+	ctx := appengine.NewContext(c.Request)
+	uid := c.Param("Uid")
+	day, _ := strconv.Atoi(c.Param("Day"))
 
-func Create(c context.Context, data *StepData) (*StepData, error) {
-	if data == nil {
-		return nil, fmt.Errorf(invalidData)
-	}
-
-	strId := stepToId(data)
-	key := datastore.NewKey(c, index, strId, 0, nil)
-	_, err := datastore.Put(c, key, data)
-	return data, err
+	total_count, _ := GetDaySteps(ctx, uid, day)
+	c.JSON(http.StatusOK, total_count)
 }
 
-func GetDaySteps(c context.Context, uid string, day int) (int, error) {
-	query := datastore.NewQuery(index).Filter("Uid =", uid).Filter("Day =", day)
-	it := query.Run(c)
-	totalCount := 0
-	for {
-		var stepData StepData
-		_, err := it.Next(&stepData)
-		if err == iterator.Done {
-			//TODO: iterator.Done seems doesn't work
-			return totalCount, nil
-		}
-		if err != nil {
-			return totalCount, err
-		}
+func getCurrentDaySteps(c *gin.Context) {
+	ctx := appengine.NewContext(c.Request)
+	uid := c.Param("Uid")
 
-		totalCount += stepData.Count
-	}
+	total_count, _ := GetCurrentDaySteps(ctx, uid)
+	c.JSON(http.StatusOK, total_count)
 }
 
-func getCurrentDaySteps(c context.Context, uid string) (int, error) {
-	query := datastore.NewQuery(index).Filter("Uid =", uid)
-	it := query.Run(c)
-	maxDay, stepCount := -1, 0
+func getRangeDaysSteps(c *gin.Context) {
+	ctx := appengine.NewContext(c.Request)
+	uid := c.Param("Uid")
+	startDay, _ := strconv.Atoi(c.Param("StartDay"))
+	numDays, _ := strconv.Atoi(c.Param("NumDays"))
 
-	for {
-		var stepData StepData
-		_, err := it.Next(&stepData)
-		if err == iterator.Done {
-			//TODO: iterator.Done seems doesn't work
-			return stepCount, nil
-		}
-		if err != nil {
-			return stepCount, err
-		}
-
-		if maxDay < stepData.Day {
-			maxDay, stepCount = stepData.Day, stepData.Count
-		} else if maxDay == stepData.Day {
-			stepCount += stepData.Count
-		}
-	}
-
+	totalCount, _ := GetRangeDaysSteps(ctx, uid, startDay, numDays)
+	c.JSON(http.StatusOK, strconv.Itoa(totalCount))
 }
-
-func getRangeDaysSteps(c context.Context, uid string, startDay int, numDays int) (int, error) {
-	totalCount := 0
-	for day := startDay; day < startDay+numDays; day++ {
-		count, _ := GetDaySteps(c, uid, day)
-		totalCount += count
-	}
-	return totalCount, nil
-}
-
-func dataToId(uid string, day int, hour int) string {
-	return uid + splitter + strconv.Itoa(day) + strconv.Itoa(hour)
-}
-
-func stepToId(step *StepData) string {
-	return dataToId(step.Uid, step.Day, step.Hour)
-}
-
 
 
 
@@ -202,9 +139,9 @@ func main() {
 
 	// Define handlers
      // these 3 don't build for some reason? so commented out
-    // r.GET("/single/:Uid/:Day", getDaySteps)
-	//r.GET("/current/:Uid", getCurrentDaySteps)
-//r.GET("/range/:Uid/:StartDay/:NumDays", getRangeDaysSteps)
+     r.GET("/single/:Uid/:Day", getDaySteps)
+	r.GET("/current/:Uid", getCurrentDaySteps)
+r.GET("/range/:Uid/:StartDay/:NumDays", getRangeDaysSteps)
  
 	r.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK, "Step Data test app")
